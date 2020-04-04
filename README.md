@@ -6,17 +6,21 @@ Ha! I am implmenting my own girl, which is a collections of RL algorithms starti
 
 - This code base is aimed at exhibiting the algorithm in RL field. Instead of those computation efficiency tricks.
 
-- This will make it easier to read and learn for almost any level of users. (But I am not going to write documentations to teach you.)
+- This will make it easier to read and learn for almost any level of users. (But I am not going to write a document to teach you.)
 
 - Also, the repo will use [pytorch](https://pytorch.org/) which I think is a lot more readable than tensorflow.
 
-## Code Conventions
+## Code Conventions and Orgnizations
 
 - All computations are mostly used in numpy ndarrays. Only when data goes into agent or algorithm, it will be Pytorch tensors by default.
 
     Something in the middle of the program (e.g. replay buffer, or agent-env interacting) will be added with `_pyt` postfix for torch.Tensor.
 
 - Each `Base` class defines the necessary interface of implementing the components, with `NotImplementedError` means you have to implement this method to make the class work.
+
+- `concepts` is a directory specifying some of the necessary RL concepts, usually defines numerically, but does not specify the type of array.
+
+- `utils` is a directory specifying some tools of running the code, they are not directly linked with RL concepts.
 
 ## Installation
 

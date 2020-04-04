@@ -1,5 +1,5 @@
 from girl.utils.quick_args import save__init__args
-from girl.concepts.base import Trajectory
+from girl.concepts.trajectory import Trajectory
 
 import torch
 from torch import nn

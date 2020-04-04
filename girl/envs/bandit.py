@@ -1,6 +1,6 @@
 from girl.utils.quick_args import save__init__args
 from girl.envs.base import EnvBase, EnvInfo, EnvStep
-from girl.spaces.int_box import IntBox
+from girl.concepts.spaces.int_box import IntBox
 
 import numpy as np
 

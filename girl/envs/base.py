@@ -28,7 +28,7 @@ class EnvBase:
     def reset(self):
         """ Resets the state of the environment, returning an initial observation.
         @ Returns
-            observation : the initial observation of the space. (Initial reward is assumed to be 0.)
+            observation: the initial observation of the space. (Initial reward is assumed to be 0.)
         """
         raise NotImplementedError
 
@@ -46,12 +46,6 @@ class EnvBase:
             observation=self.observation_space,
             action=self.action_space,
         )
-
-    @property
-    def horizon(self):
-        """ Horizon of the environment, if it has one.
-        """
-        pass
 
     def close(self):
         """ Clean up operation.

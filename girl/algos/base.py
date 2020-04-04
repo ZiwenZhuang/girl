@@ -1,4 +1,5 @@
 from girl.utils.quick_args import save__init__args
+from girl.concepts.base import Trajectory
 
 import torch
 from torch import nn
@@ -39,11 +40,11 @@ class AlgoBase:
     def load_state_dict(self, state):
         pass
 
-    def train(self, itr_i, trajs):
+    def train(self, itr_i, trajs: Trajectory):
         """ Perform one interation of optimization. Under most circumstance, it corresponding to
         one optim.step() call.
         @ Args:
-            trajs: a list of (o, a, r, d, o') tuples
+            trajs: a trajectory
         @ returns:
             train_info: a namedtuple with numbered statistics
             extra_info: a dict depends on different problem, or algorithm

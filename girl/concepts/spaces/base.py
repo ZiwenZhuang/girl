@@ -1,7 +1,7 @@
 """ Directly used from [rlpyt](https://github.com/astooke/rlpyt)
 """
 import numpy as np
-from collections import namedtuple
+from exptools.collections import namedarraytuple
 
 class Space():
     """
@@ -45,4 +45,3 @@ class Space():
         Return a null value used to fill for absence of element.
         """
         raise NotImplementedError
-

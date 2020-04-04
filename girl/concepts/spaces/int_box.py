@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from girl.concepts.base import Space
+from girl.concepts.spaces.base import Space
 
 
 class IntBox(Space):

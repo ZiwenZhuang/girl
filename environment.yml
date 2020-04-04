@@ -1,0 +1,16 @@
+name: rlpyt
+channels:
+- pytorch
+dependencies:
+- python=3.6
+- pytorch=1.2
+- cudatoolkit=10.
+- numpy
+- psutil
+- opencv  # atari.
+- pip
+- pip:
+  - ptvsd # vscode debug
+  - jupyter # remote visual debug
+  - matplotlib
+  # - git+git://github.com/ziwenzhuang/exptools@add_tensorboard # the tools to manage experiment

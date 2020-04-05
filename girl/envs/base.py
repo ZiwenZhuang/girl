@@ -20,7 +20,7 @@ class EnvBase:
             (observation, reward, done, info)
             observation: agent's observation of the current environment
             reward[Float]: amount of reward due to the previous action
-            done: a boolean, indicating whether the episode has ended
+            done: a boolean, indicating whether the episode has ended (usually a uint8)
             info: a namedtuple containing other diagnostic information from the previous action
         """
         raise NotImplementedError

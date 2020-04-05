@@ -10,6 +10,8 @@ class IntBox(Space):
     """A box in `J^n`, with specificiable bound and dtype, at the range of [low, high)
     """
 
+    is_continuous= False
+    
     def __init__(self, low, high, shape=None, dtype="int32", null_value=None):
         """
         Params ``low`` and ``high`` are scalars, applied across all dimensions

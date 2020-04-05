@@ -9,6 +9,8 @@ from girl.concepts.spaces.base import Space
 class FloatBox(Space):
     """A box in `R^n`, with specifiable bounds and dtype."""
 
+    is_continuous= True
+    
     def __init__(self, low, high, shape=None, null_value=0., dtype="float32"):
         """
         Two kinds of valid input:

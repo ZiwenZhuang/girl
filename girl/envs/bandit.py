@@ -3,12 +3,13 @@ from girl.envs.base import EnvBase, EnvInfo, EnvStep
 from girl.concepts.spaces.int_box import IntBox
 
 import numpy as np
+from typing import List
 
 class BanditEnv(EnvBase):
     """ In the multi-armed bandit problem setting
     """
     def __init__(self,
-            win_probs: list(float),
+            win_probs: List[float],
         ):
         """
         @ Args:

@@ -11,9 +11,6 @@ class QTableAgent(AgentBase):
     """ NOTE: under the bandit setting, there is no condition on states, so this will be a bit
     different from normal RL settings
     """
-    def __init__(self, **kwargs):
-        save__init__args(locals())
-
     def initialize(self,
             observation_space, # This will not be used
             action_space: IntBox, # since the agent records a table, it need discrete action space
@@ -23,17 +20,17 @@ class QTableAgent(AgentBase):
         self.action_space = action_space
         assert len(action_space.shape) == 0, "In multi-armed bandit setting, the action is a single int"
 
-        n_actions = (self.action_space.high - self.action_space.low)[0]
+        n_actions = self.action_space.high - self.action_space.low
         # build a Q table with only action concerned
         self.q_table = torch.zeros((n_actions,), dtype= torch.float32)
 
 class ActionCountAgent(QTableAgent):
     """ Considering oroginal Q table does not necessary store action_count as learning attribute.
     """
-    def initialize(self, *args):
-        super().initialize(*args)
+    def initialize(self, *args, **kwargs):
+        super().initialize(*args, **kwargs)
         # This is a learned parameter, which is not manipulated in the agent
-        self._action_count = torch.zeros_like(self.q_table, dtype= torch.uint32) # count actions
+        self._action_count = torch.zeros_like(self.q_table, dtype= torch.int) # count actions
     @property
     def action_count_table(self):
         return self._action_count
@@ -41,8 +38,8 @@ class ActionCountAgent(QTableAgent):
 class eGreedyAgent(ActionCountAgent):
     """ choose action based on epsilon-greedy strategy
     """
-    def __init__(self, epsilon, **kwargs):
-        super().__init__(epsilon= epsilon)
+    def __init__(self, epsilon):
+        save__init__args(locals())
 
     @torch.no_grad()
     def step(self, observation):
@@ -59,10 +56,10 @@ class eGreedyAgent(ActionCountAgent):
         return torch.stack(action_batch)
 
 class ucbBanditAgent(ActionCountAgent):
-    def __init__(self, c, **kwargs):
+    def __init__(self, c):
         """ As UCB algorithm described, you need to provide a factor c
         """
-        super().__init__(c= c)
+        save__init__args(locals())
 
     def reset(self, batch_size= 1):
         assert batch_size == 1, "UCB bandit algorithm support only batch size = 1 instead of {}".format(batch_size)

@@ -6,6 +6,7 @@ from girl.samplers.base import SamplerBase
 from exptools.logging import logger
 from exptools.launching.affinity import set_gpu_from_visibles
 
+import os
 import torch
 
 class RunnerBase:
@@ -40,11 +41,11 @@ class RunnerBase:
             f"{torch.get_num_threads()}.")
         # view cuda configuration for this environment
         logger.log(f"Runner{getattr(self, 'rank', '')} CUDA_VISIBLE_DEVICES: "
-            f"{os.environ['CUDA_VISIBLE_DEVICES']}.")
+            f"{os.environ.get('CUDA_VISIBLE_DEVICES', '')}.")
         set_gpu_from_visibles(self.affinity.get("cuda_idx", 0))
 
         # components setup
-        self.agent.initialize(self.sampler.env_spec())
+        self.agent.initialize(*self.sampler.env_spec())
         self.algo.initialize(self.agent)
         self.sampler.initialize(self.agent)
 

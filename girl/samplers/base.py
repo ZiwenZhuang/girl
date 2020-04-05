@@ -45,7 +45,7 @@ class SamplerBase:
 
         # making an example to make trajectory batches
         o = self.envs[0].observation_space.sample()
-        a = self.envs[0].action_space.sampe()
+        a = self.envs[0].action_space.sample()
         r = np.asarray(0, dtype= np.float32)
         d = np.asarray(0, dtype= np.uint8)
         o_ = o
@@ -69,9 +69,9 @@ class SamplerBase:
         env_infos = [list() for _ in range(self.traj_len)]
         # start collecting samples
         for t_i in range(self.traj_len):
-            action = self.agent.step(torch.from_nummpy(self.buffer_np.observation[t_i]))
-            for b_i in range(self.envs):
-                o_, r, d, env_info = self.env.step(action[b_i].numpy())
+            action = self.agent.step(torch.from_numpy(self.buffer_np.observation[t_i]))
+            for b_i in range(len(self.envs)):
+                o_, r, d, env_info = self.envs[b_i].step(action[b_i].numpy())
                 self.buffer_np.next_observation[t_i, b_i] = o_
                 self.buffer_np.reward[t_i, b_i] = r
                 self.buffer_np.done[t_i, b_i] = d

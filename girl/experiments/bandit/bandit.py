@@ -26,14 +26,18 @@ def main(affinity_code, log_dir, run_id, *args):
     else:
         raise NotImplementedError("Solution {} has not been implemented".format(config["solution"]))
 
-    sampler = SamplerBase(**config["sampler_kwargs"])
+    sampler = SamplerBase(
+        EnvCls= BanditEnv,
+        env_kwargs= config["env_kwargs"],
+        **config["sampler_kwargs"]
+    )
     runner = RunnerBase(
         algo= algo, agent= agent, sampler= sampler,
         affinity= affinity,
         **config["runner_kwargs"]
     )
 
-    name = "Bandits"
+    name = "Bandit"
     with logger_context(log_dir, run_id, name, config):
         runner.run()
 

@@ -92,6 +92,8 @@ class ThompsonAgent(QTableAgent):
             prior: a (n, 2) ndarray with beta priors. prior[:,0] is the first concentration
                 If given, `n` has to be the same as number of valid actions
         """
+        if not isinstance(prior, np.ndarray):
+            prior = np.array(prior)
         save__init__args(locals())
 
     def initialize(self,

@@ -7,15 +7,13 @@ from torch import optim
 
 from collections import namedtuple
 
-TrainInfo = namedtuple("TrainInfo", ["loss"])
+TrainInfo = namedtuple("TrainInfo", [])
 
 class AlgoBase:
-    """ A basic implementation of the training algorithm
+    """ A basic interface of the training algorithm
     """
+    # NOTE: Do remember update this attribute every time you use a new TrainInfo
     train_info_fields = tuple(f for f in TrainInfo._fields) # copy
-
-    def __init__(self, **kwargs):
-        save__init__args(locals())
 
     def initialize(self, agent):
         """ Register the agent which is to optimize, you may not inherit this implementation
@@ -31,11 +29,12 @@ class AlgoBase:
     def load_state_dict(self, state):
         pass
 
-    def train(self, epoch_i, trajs: Trajectory):
+    def train(self, epoch_i, trajs: Trajectory, env_info):
         """ Perform one interation of optimization. Under most circumstance, it corresponding to
         one optim.step() call.
         @ Args:
             trajs: a trajectory with leading dims (T, B)
+            env_infos: a nested list of dictionary with leading dim (T. B)
         @ returns:
             train_info: a namedtuple with numbered statistics
             extra_info: a dict depends on different problem, or algorithm

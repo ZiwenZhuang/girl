@@ -1,7 +1,7 @@
 """
 """
-from girl.agents.bandit import eGreedyAgent, ucbBanditAgent
-from girl.algos.bandit import eGreedyBandit
+from girl.agents.bandit import eGreedyAgent, ucbBanditAgent, ThompsonAgent, GradientAgent
+from girl.algos.bandit import eGreedyBandit, ThompsonAlgorithm, GradientBanditAlgo
 from girl.envs.bandit import BanditEnv
 from girl.samplers.base import SamplerBase
 from girl.runners.base import RunnerBase
@@ -18,11 +18,19 @@ def main(affinity_code, log_dir, run_id, *args):
     if config["solution"] == "eGreedy":
         agent_kwargs = {k: config["agent_kwargs"][k] for k in ('epsilon',)}
         agent = eGreedyAgent(**agent_kwargs)
-        algo = eGreedyBandit(**config["algo_kwargs"])
+        algo = eGreedyBandit()
     elif config["solution"] == "ucb":
-        agent_kwargs = {k: config["agent_kwargs"][k] for k in ('c',)}
+        agent_kwargs = {k: config["agent_kwargs"].get(k, 1.0) for k in ('c',)}
         agent = ucbBanditAgent(**agent_kwargs)
-        algo = eGreedyBandit(**config["algo_kwargs"])
+        algo = eGreedyBandit()
+    elif config["solution"] == "thompson":
+        agent_kwargs = {k: config["agent_kwargs"].get(k, None) for k in ('prior',)}
+        agent = ThompsonAgent(**agent_kwargs)
+        algo = ThompsonAlgorithm()
+    elif config["solution"] == "gradientBandit":
+        agent_kwargs = {k: config["agent_kwargs"].get(k, False) for k in ('random_init',)}
+        agent = GradientAgent(**agent_kwargs)
+        algo = GradientBanditAlgo(**config["algo_kwargs"])
     else:
         raise NotImplementedError("Solution {} has not been implemented".format(config["solution"]))
 

@@ -14,8 +14,11 @@ def make_default_config():
         agent_kwargs= dict(
             epsilon= 0.1,
             c= 1.0,
+            random_init= False,
         ),
-        algo_kwargs= dict(),
+        algo_kwargs= dict(
+            learning_rage= 1e-2,
+        ),
         sampler_kwargs= dict(
             traj_len= 1,
             batch_size= 1,

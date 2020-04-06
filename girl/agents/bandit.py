@@ -5,11 +5,15 @@ from girl.concepts.spaces.int_box import IntBox
 from girl.utils.quick_args import save__init__args
 
 import torch
+from torch.autograd import Variable
+from torch import functional as F
+from torch import distributions as distr
 import numpy as np
 
 class QTableAgent(AgentBase):
     """ NOTE: under the bandit setting, there is no condition on states, so this will be a bit
-    different from normal RL settings
+    different from normal RL settings.
+        And you need an attribute called `q_table` as torch tensor with shape (n,)
     """
     def initialize(self,
             observation_space, # This will not be used
@@ -52,11 +56,12 @@ class eGreedyAgent(ActionCountAgent):
             else:
                 # greedy action
                 action = torch.argmax(self.q_table) # a scalar
+
             action_batch.append(action)
         return torch.stack(action_batch)
 
 class ucbBanditAgent(ActionCountAgent):
-    def __init__(self, c):
+    def __init__(self, c= 1.0):
         """ As UCB algorithm described, you need to provide a factor c
         """
         save__init__args(locals())
@@ -69,11 +74,95 @@ class ucbBanditAgent(ActionCountAgent):
     @torch.no_grad()
     def step(self, observation):
         self._t += 1
+
         action_batch = list()
         for _ in range(self.batch_size):
+
             ucb_ = torch.sqrt(2 * torch.log(self._t) / self.action_count_table) * self.c
             ucb = self.q_table + ucb_
             action = torch.argmax(ucb)
 
             action_batch.append(action)
+        return torch.stack(action_batch)
+
+class ThompsonAgent(QTableAgent):
+    def __init__(self, prior: np.ndarray= None):
+        """
+        @ Args
+            prior: a (n, 2) ndarray with beta priors. prior[:,0] is the first concentration
+                If given, `n` has to be the same as number of valid actions
+        """
+        save__init__args(locals())
+
+    def initialize(self,
+            observation_space,
+            action_space: IntBox,
+        ):
+        if not self.prior is None:
+            assert self.prior.shape[0] == (action_space.high - action_space.low), \
+                "Wrong num of valid actions with distribution prior"
+        else:
+            self.prior = torch.ones(
+                (action_space.high - action_space.low, 2),
+                dtype= torch.float32,
+            )
+        bi_distr = distr.beta.Beta(self.prior[:,0], self.prior[:,1])
+        self.q_table = bi_distr.sample()
+
+    @torch.no_grad()
+    def step(self, observation):
+        bi_distr = distr.beta.Beta(self.prior[:,0], self.prior[:,1])
+        self.q_table = bi_distr.sample()
+
+        action_batch = list()
+        for _ in range(self.batch_size):
+            action_batch.append(self.q_table.argmax())
+        
+        return torch.stack(action_batch)
+
+class GradientAgent(AgentBase):
+    def __init__(self, random_init= False):
+        save__init__args(locals())
+    
+    def initialize(self,
+            observation_space,
+            action_space: IntBox,
+        ):
+        if not self.random_init:
+            preference = torch.zeros((action_space.high - action_space.low, ))
+        else:
+            preference = torch.randn((action_space.high - action_space.low, ))
+        self.preference = Variable(preference, requires_grad= True)
+
+    def reset(self, batch_size):
+        self.baselines = list() # to record history rewards
+
+    def update_baseline(self, reward):
+        """ NOTE: batch-wise reward
+        """
+        self.baselines.append(reward)
+
+    @property
+    def baseline_table(self):
+        """ A batch of baseline (mean of history reward)
+        """
+        reward_history = torch.stack(self.baselines) # (T, B)
+        return torch.mean(reward_history, dim= 0) # (B,)
+    
+    def parameters(self):
+        """ justlike torch module
+        """
+        return [self.preference]
+
+    def log_pi_table(self):
+        """ Under Bandit setting, pi needs to output probability table for each action
+        """
+        return F.log_softmax(self.preference)
+
+    @torch.no_grad()
+    def step(self, observation):
+        action_batch = list()
+        for _ in range(self.batch_size):
+            action_batch.append(self.preference.argmax())
+
         return torch.stack(action_batch)

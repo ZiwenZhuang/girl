@@ -140,7 +140,7 @@ class RunnerBase:
             self.agent.sample_mode()
             env_info = self.sampler.sample(self.epoch_i)
             self.agent.train_mode()
-            train_info, extra_info = self.algo.train(self.epoch_i, self.sampler.buffer_pyt)
+            train_info, extra_info = self.algo.train(self.epoch_i, self.sampler.buffer_pyt, env_info)
             self.agent.sample_mode()
 
             # Do the logging, which is not part of the algorithm

@@ -14,6 +14,7 @@ def make_default_config():
         agent_kwargs= dict(
             epsilon= 0.1,
             c= 1.0,
+            prior= [[1,1],[1,1],[1,1]],
             random_init= False,
         ),
         algo_kwargs= dict(
@@ -46,13 +47,39 @@ def main(args):
     # start building variants
     variant_levels = list()
 
+    # values = [
+    #     ["eGreedy", 0.1,],
+    #     ["eGreedy", 0.5,],
+    #     ["eGreedy", 0.9,],
+    # ]
+    # dir_names = ["eGreedy-{}".format(v[1]) for v in values]
+    # keys = [
+    #     ("solution", ),
+    #     ("agent_kwargs", "epsilon"),
+    # ] # each entry in the list is the string path to your config
+    # variant_levels.append(VariantLevel(keys, values, dir_names))
+
+    # values = [
+    #     ["ucb", 1,],
+    #     ["ucb", 5,],
+    #     ["ucb", 10,],
+    # ]
+    # dir_names = ["{}-{}".format(*v) for v in values]
+    # keys = [
+    #     ("solution", ),
+    #     ("agent_kwargs", "c"),
+    # ] # each entry in the list is the string path to your config
+    # variant_levels.append(VariantLevel(keys, values, dir_names))
+
     values = [
-        [0.1,],
-        [0.5,],
-        [0.9,],
+        ["thompson", [[1,1],    [1,1],    [1,1]], ],
+        ["thompson", [[601,401],[401,601],[2,3]], ],
     ]
-    dir_names = ["{}".format(*v) for v in values]
-    keys = [("agent_kwargs", "epsilon"),] # each entry in the list is the string path to your config
+    dir_names = ["{}-{}".format(*v) for v in values]
+    keys = [
+        ("solution", ),
+        ("agent_kwargs", "prior"),
+    ] # each entry in the list is the string path to your config
     variant_levels.append(VariantLevel(keys, values, dir_names))
 
     # get all variants and their own log directory

@@ -10,6 +10,8 @@ EnvInfo = namedtuple("EnvInfo", [])  # Define by each of the environments
 EnvSpaces = namedtuple("EnvSpaces", ["observation", "action"])
 
 class EnvBase:
+    """ NOTE: all numerical value output by environment should be type of np.float32
+    """
 
     def step(self, action):
         """ Run one timestep of the environment's dynamics. When end of episode

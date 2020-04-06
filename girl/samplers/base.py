@@ -66,7 +66,7 @@ class SamplerBase:
             env_infos: a nested list with leading dim (T, B) of environment returns
         """        
         self.buffer_np.observation[0] = self.last_obs
-        env_infos = [list() for _ in range(self.traj_len)]
+        env_infos = [[None for _ in range(self.batch_size)] for _ in range(self.traj_len)]
         # start collecting samples
         for t_i in range(self.traj_len):
             action = self.agent.step(torch.from_numpy(self.buffer_np.observation[t_i]))
@@ -75,7 +75,7 @@ class SamplerBase:
                 self.buffer_np.next_observation[t_i, b_i] = o_
                 self.buffer_np.reward[t_i, b_i] = r
                 self.buffer_np.done[t_i, b_i] = d
-                env_infos[t_i].append(env_info)
+                env_infos[t_i][b_i] = env_info
                 # put to observation of next timestep if possible
                 if t_i < self.traj_len-1:
                     self.buffer_np.observation[t_i+1, b_i] = o_

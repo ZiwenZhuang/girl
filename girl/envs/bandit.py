@@ -35,8 +35,8 @@ class BanditEnv(EnvBase):
             observation= o,
             reward= r,
             done= False,
-            env_info= EnvInfo(
-                np.amax(self._win_probs), # V_star
+            env_info= BanditEnvInfo(
+                np.array(np.amax(self._win_probs)).astype(np.float32), # V_star
                 is_optimal,
             ),
         )

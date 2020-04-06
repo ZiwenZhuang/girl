@@ -34,7 +34,7 @@ class ActionCountAgent(QTableAgent):
     def initialize(self, *args, **kwargs):
         super().initialize(*args, **kwargs)
         # This is a learned parameter, which is not manipulated in the agent
-        self._action_count = torch.zeros_like(self.q_table, dtype= torch.int) # count actions
+        self._action_count = torch.zeros_like(self.q_table, dtype= torch.float32) # count actions
     @property
     def action_count_table(self):
         return self._action_count
@@ -92,8 +92,7 @@ class ThompsonAgent(QTableAgent):
             prior: a (n, 2) ndarray with beta priors. prior[:,0] is the first concentration
                 If given, `n` has to be the same as number of valid actions
         """
-        if not isinstance(prior, np.ndarray):
-            prior = np.array(prior)
+        prior = torch.tensor(prior, dtype= torch.float32)
         save__init__args(locals())
 
     def initialize(self,

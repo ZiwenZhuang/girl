@@ -33,7 +33,7 @@ class BanditAlgo(AlgoBase):
         """ Under bandit setting, B == T == 1
         """
         env_info = env_info[0][0]
-        regret = env_info.V_star - trajs.reward[0, 0]
+        regret = env_info.V_star - trajs.reward[0, 0].numpy()
         self.total_regret += regret
 
         if env_info.is_optimal:
@@ -57,7 +57,7 @@ class eGreedyBandit(BanditAlgo):
         action = trajs.action[0, 0]
         self.agent.action_count_table[action] += 1
 
-        q = self.agent.q_table[action].copy_()
+        q = copy(self.agent.q_table[action])
 
         loss = trajs.reward[0, 0] - q
         self.agent.q_table[action] += 1./(self.agent.action_count_table[action]) * loss

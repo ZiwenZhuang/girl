@@ -25,18 +25,28 @@ class SamplerBase:
         """
         save__init__args(locals())
 
-    def env_spec(self):
-        """ To initialize an agent, you need to give it a information of observation and action.
+    def make_trajectory_example(self, example_env= None):
+        """ To initialize an agent or sampler itself, you need to make examples of the environment.
+        NOTE: This method would be called anytime, so don't modify any attribute of the instance
+        @ Args
+            env: to save env construction, you may input a env when this method is called 
+                by this instance.
         @ Returns
-            observation_space: the observation space of the environment
-            action_space: the action space of the environment
+            traj: the Trajectory with no leading dimension
+            info: the info output by interacting with environment
+            env_space: the namedtuple specifying environment spaces
         """
-        example_env = self.EnvCls(**self.env_kwargs)
-        observation_space = example_env.observation_space
-        action_space = example_env.action_space
+        if example_env is None:
+            example_env = self.EnvCls(**self.env_kwargs)
+        o = example_env.reset()
+        a = example_env.action_space.sample()
+        o_, r, d, info = example_env.step(a)
 
-        del example_env
-        return observation_space, action_space
+        traj = Trajectory(o, a, r, d, o_)
+        env_space = example_env.spaces
+
+        # The env is no longer needed
+        return traj, info, env_space
 
     def initialize(self, agent: AgentBase):
         self.agent = agent
@@ -44,12 +54,7 @@ class SamplerBase:
         self.envs = [self.EnvCls(**self.env_kwargs) for _ in range(self.batch_size)]
 
         # making an example to make trajectory batches
-        o = self.envs[0].observation_space.sample()
-        a = self.envs[0].action_space.sample()
-        r = np.asarray(0, dtype= np.float32)
-        d = np.asarray(0, dtype= np.uint8)
-        o_ = o
-        self.trajectory_example = Trajectory(o, a, r, d, o_)
+        self.trajectory_example = self.make_trajectory_example(self.envs[0])[0]
         self.buffer_np = buffer_from_example(self.trajectory_example,
             leading_dims= (self.traj_len, self.batch_size)
         ) # with leading dim (T, B)

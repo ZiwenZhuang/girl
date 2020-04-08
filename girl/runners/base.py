@@ -7,6 +7,7 @@ from exptools.logging import logger
 from exptools.launching.affinity import set_gpu_from_visibles
 
 import os
+import numbers
 import torch
 
 class RunnerBase:
@@ -44,8 +45,10 @@ class RunnerBase:
             f"{os.environ.get('CUDA_VISIBLE_DEVICES', '')}.")
         set_gpu_from_visibles(self.affinity.get("cuda_idx", 0))
 
-        # components setup
-        self.agent.initialize(*self.sampler.env_spec())
+        # components setup from examples
+        traj_example, info_example, env_space = self.sampler.make_trajectory_example()
+
+        self.agent.initialize(*env_space)
         self.algo.initialize(self.agent)
         self.sampler.initialize(self.agent)
 
@@ -56,6 +59,7 @@ class RunnerBase:
         self.agent.sample_mode()
 
         # logging memory setup
+        self._env_infos = {k: list() for k in info_example._fields}
         self._train_infos = {k: list() for k in self.algo.train_info_fields}
         self.epoch_i = 0
 
@@ -93,6 +97,9 @@ class RunnerBase:
         for k, v in self._train_infos.items():
             new_v = getattr(train_info, k, [])
             v.extend(new_v if isinstance(new_v, list) else [new_v])
+        for k, v in self._env_infos.items():
+            new_v = getattr(env_info, k, [])
+            v.extend(new_v if isinstance(new_v, list) else [new_v])
 
     def _log_dignostics(self, epoch_i):
         """ Call logger to dump all statistics to the file.
@@ -106,6 +113,12 @@ class RunnerBase:
             if not k.startswith("_"):
                 logger.record_tabular_misc_stat(k, v, epoch_i)
         self._train_infos = {k: list() for k in self._train_infos}
+
+        for k, v in self._env_infos.items():
+            # NOTE: incase a value of info is not numeric type
+            if not k.startswith("_") and isinstance(v, numbers.Number):
+                logger.record_tabular_misc_stat(k, v, epoch_i)
+        self._env_infos = {k: list() for k in self._env_infos}
 
         logger.dump_tabular()
 

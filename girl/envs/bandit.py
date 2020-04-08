@@ -6,7 +6,7 @@ from collections import namedtuple
 import numpy as np
 from typing import List
 
-BanditEnvInfo = namedtuple("BanditEnvInfo", ["V_star", "is_optimal"])
+BanditEnvInfoBase = namedtuple("BanditEnvInfoBase", ["V_star", "is_optimal"])
 class BanditEnv(EnvBase):
     """ In the multi-armed bandit problem setting
     """
@@ -21,22 +21,28 @@ class BanditEnv(EnvBase):
         save__init__args(locals(), underscore=True)
         self._action_space = IntBox(0, len(self._win_probs))
         self._observation_space = IntBox(0, 1) # This serves no purpose, just to meet the interface
+        self.BanditEnvInfo = namedtuple("BanditEnvInfo",
+            [*BanditEnvInfoBase._fields] + ["arm{}".format(i) for i in range(len(win_probs))])
 
     def reset(self):
         return self._observation_space.null_value()
 
     def step(self, action):
         a = self._action_space.clamp(action)
-        r = np.random.binomial(1, self._win_probs[a])
+        r = np.float32(np.random.binomial(1, self._win_probs[a]))
         o = self._observation_space.null_value()
 
         is_optimal = (self._win_probs[a] == np.amax(self._win_probs))
-        return EnvStep(
-            observation= o,
-            reward= r,
-            done= False,
-            env_info= BanditEnvInfo(
+        action_count = np.zeros((len(self._win_probs),), dtype= np.int)
+        action_count[a] = 1
+        env_info = self.BanditEnvInfo(
                 np.array(np.amax(self._win_probs)).astype(np.float32), # V_star
                 is_optimal,
-            ),
+                *action_count
+            )
+        return EnvStep(
+            observation= o.astype(np.float32),
+            reward= r.astype(np.float32),
+            done= False,
+            env_info= env_info,
         )

@@ -156,9 +156,9 @@ class GradientAgent(AgentBase):
         """
         if self.b is None:
             reward_history = torch.stack(self.baselines) # (T, B)
-            baseline_t = torch.mean(reward_history, dim= 0) # (B,)
+            baseline_t = torch.mean(reward_history, dim= 0,) # (B,)
         else:
-            baseline_t = torch.ones((self.batch_size,)) * self.b
+            baseline_t = torch.ones((self.batch_size,), dtype= torch.float32) * self.b
         return baseline_t
     
     def parameters(self):

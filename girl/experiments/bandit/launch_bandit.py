@@ -16,9 +16,11 @@ def make_default_config():
             c= 1.0,
             prior= [[1,1],[1,1],[1,1]],
             random_init= False,
+            beta= 0.2,
+            b= None,
         ),
         algo_kwargs= dict(
-            learning_rage= 1e-2,
+            learning_rate= 1e-2,
         ),
         sampler_kwargs= dict(
             traj_len= 1,
@@ -32,9 +34,9 @@ def make_default_config():
 def main(args):
     # Either manually set the resources for the experiment:
     affinity_code = encode_affinity(
-        n_cpu_core=4,
+        n_cpu_core=16,
         n_gpu=1,
-        contexts_per_gpu= 4,
+        contexts_per_gpu= 16,
         # hyperthread_offset=8,  # if auto-detect doesn't work, number of CPU cores
         # n_socket=1,  # if auto-detect doesn't work, can force (or force to 1)
         cpu_per_run=1,
@@ -47,40 +49,78 @@ def main(args):
     # start building variants
     variant_levels = list()
 
-    # values = [
-    #     ["eGreedy", 0.1,],
-    #     ["eGreedy", 0.5,],
-    #     ["eGreedy", 0.9,],
-    # ]
-    # dir_names = ["eGreedy-{}".format(v[1]) for v in values]
-    # keys = [
-    #     ("solution", ),
-    #     ("agent_kwargs", "epsilon"),
-    # ] # each entry in the list is the string path to your config
-    # variant_levels.append(VariantLevel(keys, values, dir_names))
+    variant_choice = 0
+    ############ experiments for eGreedy ############################
+    if variant_choice == 0:
+        values = [
+            ["eGreedy", 0.1,],
+            ["eGreedy", 0.5,],
+            ["eGreedy", 0.9,],
+        ]
+        dir_names = ["eGreedy-e{}".format(v[1]) for v in values]
+        keys = [
+            ("solution", ),
+            ("agent_kwargs", "epsilon"),
+        ] # each entry in the list is the string path to your config
+        variant_levels.append(VariantLevel(keys, values, dir_names))
 
-    # values = [
-    #     ["ucb", 1,],
-    #     ["ucb", 5,],
-    #     ["ucb", 10,],
-    # ]
-    # dir_names = ["{}-{}".format(*v) for v in values]
-    # keys = [
-    #     ("solution", ),
-    #     ("agent_kwargs", "c"),
-    # ] # each entry in the list is the string path to your config
-    # variant_levels.append(VariantLevel(keys, values, dir_names))
+    ############ experiments for UCB ################################
+    elif variant_choice == 1:
+        values = [
+            ["ucb", 1,],
+            ["ucb", 5,],
+            ["ucb", 10,],
+        ]
+        dir_names = ["{}-c{}".format(*v) for v in values]
+        keys = [
+            ("solution", ),
+            ("agent_kwargs", "c"),
+        ] # each entry in the list is the string path to your config
+        variant_levels.append(VariantLevel(keys, values, dir_names))
 
-    values = [
-        ["thompson", [[1,1],    [1,1],    [1,1]], ],
-        ["thompson", [[601,401],[401,601],[2,3]], ],
-    ]
-    dir_names = ["{}-{}".format(*v) for v in values]
-    keys = [
-        ("solution", ),
-        ("agent_kwargs", "prior"),
-    ] # each entry in the list is the string path to your config
-    variant_levels.append(VariantLevel(keys, values, dir_names))
+    ############ experiments for Thompson sampling ##################
+    elif variant_choice == 2:
+        values = [
+            ["thompson", [[1,1],    [1,1],    [1,1]], ],
+            ["thompson", [[601,401],[401,601],[2,3]], ],
+        ]
+        dir_names = ["{}-prior{}".format(*v) for v in values]
+        keys = [
+            ("solution", ),
+            ("agent_kwargs", "prior"),
+        ] # each entry in the list is the string path to your config
+        variant_levels.append(VariantLevel(keys, values, dir_names))
+
+    ########## experiments for graident bandit ######################
+    elif variant_choice == 3:
+        values = [ ["gradientBandit",], ]
+        dir_names = ["{}".format(*v) for v in values]
+        keys = [("solution", ),]
+        variant_levels.append(VariantLevel(keys, values, dir_names))
+        
+        values = [
+            [0.2,],
+            [1.0,],
+            [2.0,],
+            [5.0,],
+        ]
+        dir_names = ["beta{}".format(*v) for v in values]
+        keys = [("agent_kwargs", "beta"),] # each entry in the list is the string path to your config
+        variant_levels.append(VariantLevel(keys, values, dir_names))
+        
+        values = [
+            [0.0,],
+            [0.8,],
+            [5.0,],
+            [20.0,],
+        ]
+        dir_names = ["b{}".format(*v) for v in values]
+        keys = [("agent_kwargs", "b"),] # each entry in the list is the string path to your config
+        variant_levels.append(VariantLevel(keys, values, dir_names))
+
+    ######### Done setting hyper-parameters #########################
+    else:
+        raise ValueError("Wrong experiment choice {}".format(variant_choice))
 
     # get all variants and their own log directory
     variants, log_dirs = make_variants(*variant_levels)
@@ -91,7 +131,7 @@ def main(args):
         script= "girl/experiments/bandit/bandit.py",
         affinity_code= affinity_code,
         experiment_title= "Bandit",
-        runs_per_setting= 1,
+        runs_per_setting= 1000,
         variants= variants,
         log_dirs= log_dirs, # the directory under "${experiment title}"
         debug_mode= args.debug, # if greater than 0, the launcher will run one variant in this process)

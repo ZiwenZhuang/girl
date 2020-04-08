@@ -6,7 +6,7 @@ from girl.utils.quick_args import save__init__args
 
 import torch
 from torch.autograd import Variable
-from torch import functional as F
+from torch.nn import functional as F
 from torch import distributions as distr
 import numpy as np
 
@@ -122,7 +122,11 @@ class ThompsonAgent(QTableAgent):
         return torch.stack(action_batch)
 
 class GradientAgent(AgentBase):
-    def __init__(self, random_init= False):
+    def __init__(self,
+            random_init= False,
+            beta= 1.0, # coefficient for likelyhood
+            b: float= None, # if None, constantly update baseline; or keep baseline constant
+        ):
         save__init__args(locals())
     
     def initialize(self,
@@ -136,19 +140,26 @@ class GradientAgent(AgentBase):
         self.preference = Variable(preference, requires_grad= True)
 
     def reset(self, batch_size):
-        self.baselines = list() # to record history rewards
+        if self.b is None:
+            self.baselines = list() # to record history rewards
+        super().reset(batch_size= batch_size)
 
     def update_baseline(self, reward):
         """ NOTE: batch-wise reward
         """
-        self.baselines.append(reward)
+        if self.b is None:
+            self.baselines.append(reward)
 
     @property
     def baseline_table(self):
         """ A batch of baseline (mean of history reward)
         """
-        reward_history = torch.stack(self.baselines) # (T, B)
-        return torch.mean(reward_history, dim= 0) # (B,)
+        if self.b is None:
+            reward_history = torch.stack(self.baselines) # (T, B)
+            baseline_t = torch.mean(reward_history, dim= 0) # (B,)
+        else:
+            baseline_t = torch.ones((self.batch_size,)) * self.b
+        return baseline_t
     
     def parameters(self):
         """ justlike torch module
@@ -158,7 +169,7 @@ class GradientAgent(AgentBase):
     def log_pi_table(self):
         """ Under Bandit setting, pi needs to output probability table for each action
         """
-        return F.log_softmax(self.preference)
+        return F.log_softmax(self.preference, dim= 0)
 
     @torch.no_grad()
     def step(self, observation):

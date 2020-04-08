@@ -94,6 +94,7 @@ class GradientBanditAlgo(BanditAlgo):
     train_info_fields = tuple(k for k in BanditTrainInfo._fields)
 
     def __init__(self, learning_rate= 1e-2):
+        super().__init__()
         self.learning_rate = learning_rate
 
     def initialize(self, agent: GradientAgent):
@@ -123,7 +124,8 @@ class GradientBanditAlgo(BanditAlgo):
         # zero_grad
         params = self.agent.parameters()
         for param in params:
-            param.grad.data.zero_()
+            if not param.grad is None:
+                param.grad.data.zero_()
         
         # compute loss (to target)
         pi_loss = self.loss(trajs)

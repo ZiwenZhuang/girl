@@ -12,6 +12,9 @@ from exptools.logging.context import logger_context
 import sys, os, json
 
 def main(affinity_code, log_dir, run_id, *args):
+    # NOTE: I disable all outputs of this single experiment
+    sys.stdout = open(os.devnull, 'w')
+
     affinity = affinity_from_code(affinity_code)
     config = load_variant(log_dir)
     
@@ -28,7 +31,7 @@ def main(affinity_code, log_dir, run_id, *args):
         agent = ThompsonAgent(**agent_kwargs)
         algo = ThompsonAlgorithm()
     elif config["solution"] == "gradientBandit":
-        agent_kwargs = {k: config["agent_kwargs"].get(k, False) for k in ('random_init',)}
+        agent_kwargs = {k: config["agent_kwargs"].get(k, False) for k in ('random_init','beta','b',)}
         agent = GradientAgent(**agent_kwargs)
         algo = GradientBanditAlgo(**config["algo_kwargs"])
     else:

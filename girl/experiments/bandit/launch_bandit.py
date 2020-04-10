@@ -49,7 +49,7 @@ def main(args):
     # start building variants
     variant_levels = list()
 
-    variant_choice = 0
+    variant_choice = 3
     ############ experiments for eGreedy ############################
     if variant_choice == 0:
         values = [
@@ -84,7 +84,7 @@ def main(args):
             ["thompson", [[1,1],    [1,1],    [1,1]], ],
             ["thompson", [[601,401],[401,601],[2,3]], ],
         ]
-        dir_names = ["{}-prior{}".format(*v) for v in values]
+        dir_names = ["{}-prior{}".format(v[0], v[1][0][0]) for v in values]
         keys = [
             ("solution", ),
             ("agent_kwargs", "prior"),
@@ -131,7 +131,7 @@ def main(args):
         script= "girl/experiments/bandit/bandit.py",
         affinity_code= affinity_code,
         experiment_title= "Bandit",
-        runs_per_setting= 1000,
+        runs_per_setting= 200,
         variants= variants,
         log_dirs= log_dirs, # the directory under "${experiment title}"
         debug_mode= args.debug, # if greater than 0, the launcher will run one variant in this process)

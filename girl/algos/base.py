@@ -29,7 +29,7 @@ class AlgoBase:
     def load_state_dict(self, state):
         pass
 
-    def train(self, epoch_i, trajs: Trajectory, env_info):
+    def train(self, epoch_i, trajs: Trajectory, env_infos):
         """ Perform one interation of optimization. Under most circumstance, it corresponding to
         one optim.step() call.
         @ Args:

@@ -75,6 +75,7 @@ class SamplerBase:
         # start collecting samples
         for t_i in range(self.traj_len):
             action = self.agent.step(torch.from_numpy(self.buffer_np.observation[t_i]))
+            self.buffer_np.action[t_i] = action
             for b_i in range(len(self.envs)):
                 o_, r, d, env_info = self.envs[b_i].step(action[b_i].numpy())
                 self.buffer_np.next_observation[t_i, b_i] = o_

@@ -78,9 +78,14 @@ class ucbBanditAgent(ActionCountAgent):
         action_batch = list()
         for _ in range(self.batch_size):
 
-            ucb_ = torch.sqrt(2 * torch.log(self._t) / self.action_count_table) * self.c
-            ucb = self.q_table + ucb_
-            action = torch.argmax(ucb)
+            # First make sure all actions are experienced once
+            where_zero = np.where(self._action_count == 0)[0]
+            if len(where_zero) > 0:
+                action = torch.tensor(where_zero[0])
+            else:
+                ucb_ = torch.sqrt(2 * torch.log(self._t) / self.action_count_table)
+                ucb = self.q_table + self.c * ucb_
+                action = torch.argmax(ucb)
 
             action_batch.append(action)
         return torch.stack(action_batch)
@@ -144,14 +149,14 @@ class GradientAgent(AgentBase):
             self.baselines = list() # to record history rewards
         super().reset(batch_size= batch_size)
 
-    def update_baseline(self, reward):
+    def update_baselines(self, reward):
         """ NOTE: batch-wise reward
         """
         if self.b is None:
             self.baselines.append(reward)
 
     @property
-    def baseline_table(self):
+    def baselines(self):
         """ A batch of baseline (mean of history reward)
         """
         if self.b is None:

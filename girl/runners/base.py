@@ -8,6 +8,7 @@ from exptools.launching.affinity import set_gpu_from_visibles
 
 import os
 import numbers
+import numpy as np
 import torch
 
 class RunnerBase:
@@ -84,7 +85,7 @@ class RunnerBase:
         logger.log("saved")
 
     def _store_train_info(self, epoch_i,
-            env_info,
+            env_infos,
             train_info,
             extra_info,
         ):
@@ -98,8 +99,10 @@ class RunnerBase:
             new_v = getattr(train_info, k, [])
             v.extend(new_v if isinstance(new_v, list) else [new_v])
         for k, v in self._env_infos.items():
-            new_v = getattr(env_info, k, [])
-            v.extend(new_v if isinstance(new_v, list) else [new_v])
+            for i in env_infos:
+                for env_info in i:
+                    new_v = getattr(env_info, k, [])
+                    v.extend(new_v if isinstance(new_v, list) else [new_v])
 
     def _log_dignostics(self, epoch_i):
         """ Call logger to dump all statistics to the file.
@@ -116,7 +119,8 @@ class RunnerBase:
 
         for k, v in self._env_infos.items():
             # NOTE: incase a value of info is not numeric type
-            if not k.startswith("_") and isinstance(v, numbers.Number):
+            if not k.startswith("_") and len(v) > 0 and \
+                (isinstance(v[0], numbers.Number) or isinstance(v[0], np.ndarray)):
                 logger.record_tabular_misc_stat(k, v, epoch_i)
         self._env_infos = {k: list() for k in self._env_infos}
 
@@ -151,14 +155,14 @@ class RunnerBase:
             self.epoch_i += 1
             # Do the training procedure
             self.agent.sample_mode()
-            env_info = self.sampler.sample(self.epoch_i)
+            env_infos = self.sampler.sample(self.epoch_i)
             self.agent.train_mode()
-            train_info, extra_info = self.algo.train(self.epoch_i, self.sampler.buffer_pyt, env_info)
+            train_info, extra_info = self.algo.train(self.epoch_i, self.sampler.buffer_pyt, env_infos)
             self.agent.sample_mode()
 
             # Do the logging, which is not part of the algorithm
             self._store_train_info(self.epoch_i,
-                env_info,
+                env_infos,
                 train_info,
                 extra_info,
             )
